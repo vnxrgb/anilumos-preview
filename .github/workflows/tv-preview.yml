@@ -146,6 +146,11 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/tv-polish'
 
+          Changes in this preview build:
+          - Added Soft, Balanced and Vivid cinema-lighting presets to the TV player settings.
+          - Renamed the TV pairing screen to AniLumos Connect and clarified phone QR scanning and six-digit confirmation.
+          - Retained the existing QR address display and secure login handshake.
+
           Unit tests, TV lint, APK packaging and release certificate fingerprint verified in this workflow.
           Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
           Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
