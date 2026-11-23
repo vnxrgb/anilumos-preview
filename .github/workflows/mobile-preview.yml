@@ -1,0 +1,135 @@
+name: Publish mobile debug preview
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/mobile-preview.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview-mobile-release
+  cancel-in-progress: false
+
+jobs:
+  mobile:
+    name: Test, package and publish mobile/tablet beta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ANILIST_CLIENT_ID: ${{ vars.ANILIST_CLIENT_ID }}
+      MAL_CLIENT_ID: ${{ vars.MAL_CLIENT_ID }}
+      MAL_REDIRECT_URI: ${{ vars.MAL_REDIRECT_URI }}
+    steps:
+      - name: Check out mobile source branch only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: vnxrgb/Anilumos
+          ref: feature/mobile-polish
+          persist-credentials: false
+
+      - name: Record precise source revision
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "tag=mobile-preview-${sha:0:12}" >> "$GITHUB_OUTPUT"
+
+      - name: Require working OAuth configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in ANILIST_CLIENT_ID MAL_CLIENT_ID MAL_REDIRECT_URI; do
+            value="${!name:-}"
+            if [[ -z "${value//[[:space:]]/}" ]]; then
+              echo "::error::Configure preview repository Actions variable $name before publishing a test APK."
+              exit 1
+            fi
+          done
+          case "$MAL_REDIRECT_URI" in
+            http://localhost/|https://localhost/|anilife://auth/mal) ;;
+            *) echo "::error::Unexpected MAL redirect URI"; exit 1 ;;
+          esac
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: false
+
+      - name: Mobile unit tests, lint and debug assembly
+        run: ./gradlew :app:testMobileDebugUnitTest :app:lintMobileDebug :app:assembleMobileDebug --max-workers=2 --no-configuration-cache --console=plain
+
+      - name: Check mobile package and signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          apks=(app/build/outputs/apk/mobile/debug/*.apk)
+          if [[ "${#apks[@]}" != 1 ]]; then
+            echo "::error::Expected exactly one mobile debug APK, found ${#apks[@]}"
+            exit 1
+          fi
+          apk="${apks[0]}"
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
+          badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
+          grep -Fq "name='com.anilumos.app.debug'" <<< "$badging"
+          if grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' <<< "$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump xmltree "$apk" AndroidManifest.xml)"; then
+            echo "::error::Mobile preview unexpectedly carries a TV launcher"
+            exit 1
+          fi
+          mkdir -p dist
+          cp "$apk" dist/AniLumos-MOBILE-BETA-debug.apk
+          (cd dist && sha256sum AniLumos-MOBILE-BETA-debug.apk > SHA256SUMS)
+
+      - name: Store verified APK as a workflow artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: anilumos-mobile-beta-debug
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish permanent experimental mobile release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: vnxrgb/anilumos-preview
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          TAG: ${{ steps.source.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to overwrite tested binaries."
+            exit 0
+          fi
+          cat > notes.md <<EOF
+          **ANDROID PHONE / TABLET BETA — NOT FOR TV OR STABLE UPGRADES**
+
+          Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
+          Branch: `feature/mobile-polish`
+
+          Mobile unit tests, lint, APK packaging and debug signature verified in this workflow.
+          QR scanning and account pairing need testing with the TV alpha on a real network.
+          Debug package: `com.anilumos.app.debug`. It installs separately from the release-signed stable app and will not upgrade it.
+
+          AniLife: https://github.com/anilifecommunity/android-and-tv
+          This app uses code from Morphe. To learn more, visit https://morphe.software
+          See the source repository's LICENSE and notices.
+          EOF
+          gh release create "$TAG" dist/AniLumos-MOBILE-BETA-debug.apk dist/SHA256SUMS \
+            --target "$GITHUB_SHA" --prerelease --title "MOBILE / TABLET BETA | ${SOURCE_SHA:0:12}" --notes-file notes.md
+          echo "Mobile prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
