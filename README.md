@@ -21,6 +21,8 @@ Each release is tied to a specific **source commit** and has a SHA-256 checksum,
 
 Choose **Actions** in this repository and run **Publish mobile debug preview** or **Publish TV debug preview**. These workflows check out the corresponding source branches, run unit tests and lint, build the specific Android flavor, verify APK signing and packaging, and publish only on success.
 
+**Mobile publishing setup:** In this preview repository, open **Settings → Secrets and variables → Actions → Variables** and configure `ANILIST_CLIENT_ID`, `MAL_CLIENT_ID`, and `MAL_REDIRECT_URI` (using the same values as the source repository). The mobile workflow intentionally refuses to publish when these are missing. Never enter sensitive passwords as variables.
+
 These are *debug* APKs, not release-signed stable upgrades. Never use a preview APK to update an installed stable application. Do not test real account credentials on untrusted devices.
 
 ## Attribution
