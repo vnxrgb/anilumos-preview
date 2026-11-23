@@ -60,7 +60,14 @@ jobs:
               echo "::error::Expected exactly one APK for $oldtag, got ${#apks[@]}"
               exit 1
             fi
-            (cd "$work" && sha256sum --check --ignore-missing SHA256SUMS)
+            # Older TV preview recorded 'dist/<filename>' in the checksum
+            # while GitHub downloads assets into this flat directory.
+            expected="$(awk 'NF >= 2 {print $1; exit}' "$work/SHA256SUMS")"
+            actual="$(sha256sum "${apks[0]}" | cut -d' ' -f1)"
+            [[ "$expected" =~ ^[a-fA-F0-9]{64}$ && "${expected,,}" == "$actual" ]] || {
+              echo "::error::Checksum mismatch for original prerelease $oldtag"
+              exit 1
+            }
             apk="${apks[0]}"
             test -s "$apk"
             digest="$(sha256sum "$apk" | cut -d' ' -f1)"
