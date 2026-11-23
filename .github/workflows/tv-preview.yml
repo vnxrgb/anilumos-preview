@@ -1,0 +1,108 @@
+name: Publish TV debug preview
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/tv-preview.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview-tv-release
+  cancel-in-progress: false
+
+jobs:
+  tv:
+    name: Test, package and publish Android TV / Fire TV alpha
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out TV source branch only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: vnxrgb/Anilumos
+          ref: feature/tv-polish
+          persist-credentials: false
+
+      - name: Record precise source revision
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "tag=tv-preview-${sha:0:12}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: false
+
+      - name: TV unit tests, lint and debug assembly
+        run: ./gradlew :app:testTvDebugUnitTest :app:lintTvDebug :app:assembleTvDebug --max-workers=2 --no-configuration-cache --console=plain
+
+      - name: Check TV package and signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/tv/debug/Anilumos-debug_tv.apk"
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
+          badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
+          grep -Fq "name='com.anilumos.app.debug'" <<< "$badging"
+          grep -Fq "uses-feature-not-required: name='android.hardware.touchscreen'" <<< "$badging"
+          manifest="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump xmltree "$apk" AndroidManifest.xml)"
+          grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' <<< "$manifest"
+          mkdir -p dist
+          cp "$apk" dist/AniLumos-TV-ALPHA-debug.apk
+          (cd dist && sha256sum AniLumos-TV-ALPHA-debug.apk > SHA256SUMS)
+
+      - name: Store verified APK as a workflow artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: anilumos-tv-alpha-debug
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish permanent experimental TV release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: vnxrgb/anilumos-preview
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          TAG: ${{ steps.source.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to overwrite tested binaries."
+            exit 0
+          fi
+          cat > notes.md <<EOF
+          **ANDROID TV / AMAZON FIRE TV ALPHA — NOT FOR PHONES OR STABLE USE**
+
+          Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
+          Branch: `feature/tv-polish`
+
+          Unit tests, TV lint, APK packaging and debug signature verified in this workflow.
+          Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
+          Debug package: `com.anilumos.app.debug`. This is **not** a stable-release-signed APK.
+
+          AniLife: https://github.com/anilifecommunity/android-and-tv
+          This app uses code from Morphe. To learn more, visit https://morphe.software
+          See the source repository's LICENSE and notices.
+          EOF
+          gh release create "$TAG" dist/AniLumos-TV-ALPHA-debug.apk dist/SHA256SUMS \
+            --target "$GITHUB_SHA" --prerelease --title "TV / Fire TV ALPHA | ${SOURCE_SHA:0:12}" --notes-file notes.md
+          echo "TV prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
