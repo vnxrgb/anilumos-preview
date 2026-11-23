@@ -155,6 +155,11 @@ jobs:
           This app uses code from Morphe. To learn more, visit https://morphe.software
           See the source repository's LICENSE and notices.
           EOF
-          gh release create "$TAG" dist/AniLumos-MOBILE-BETA-signed.apk \
-            --target "$GITHUB_SHA" --prerelease --title "MOBILE / TABLET BETA | ${SOURCE_SHA:0:12}" --notes-file notes.md
+          # Checkout uses the source repository, so explicitly target the preview repository.
+          if ! gh release create "$TAG" dist/AniLumos-MOBILE-BETA-signed.apk \
+            --repo vnxrgb/anilumos-preview \
+            --target "$GITHUB_SHA" --prerelease --title "MOBILE / TABLET BETA | ${SOURCE_SHA:0:12}" --notes-file notes.md; then
+            echo "::error::Mobile APK passed signing verification but GitHub denied publishing to the preview repository."
+            exit 1
+          fi
           echo "Mobile prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
