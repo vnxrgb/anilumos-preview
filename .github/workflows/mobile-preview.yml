@@ -1,4 +1,4 @@
-name: Publish mobile debug preview
+name: Publish mobile signed preview
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: preview-mobile-release
+  group: preview-mobile-signed-release
   cancel-in-progress: false
 
 jobs:
@@ -18,10 +18,16 @@ jobs:
     name: Test, package and publish mobile/tablet beta
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    environment: release
     env:
       ANILIST_CLIENT_ID: ${{ vars.ANILIST_CLIENT_ID }}
       MAL_CLIENT_ID: ${{ vars.MAL_CLIENT_ID }}
       MAL_REDIRECT_URI: ${{ vars.MAL_REDIRECT_URI }}
+      ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
+      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ vars.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
     steps:
       - name: Check out mobile source branch only
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,7 +43,7 @@ jobs:
           set -euo pipefail
           sha="$(git rev-parse HEAD)"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "tag=mobile-beta-${sha:0:12}-run${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "tag=mobile-beta-signed-${sha:0:12}-run${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Require working OAuth configuration
         shell: bash
@@ -69,15 +75,36 @@ jobs:
         with:
           cache-read-only: false
 
-      - name: Mobile unit tests, lint and debug assembly
-        run: ./gradlew :app:testMobileDebugUnitTest :app:lintMobileDebug :app:assembleMobileDebug --max-workers=2 --no-configuration-cache --console=plain
+      - name: Require and restore protected release signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in ANDROID_SIGNING_KEYSTORE_BASE64 ANDROID_SIGNING_STORE_PASSWORD ANDROID_SIGNING_KEY_PASSWORD ANDROID_SIGNING_KEY_ALIAS ANDROID_SIGNING_CERT_SHA256; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing preview repository signing secret or variable $name"
+              exit 1
+            fi
+          done
+          mkdir -p .release
+          printf '%s' "$ANDROID_SIGNING_KEYSTORE_BASE64" | base64 --decode > .release/anilumos-release.jks
+          chmod 600 .release/anilumos-release.jks
+          {
+            printf 'storeFile=.release/anilumos-release.jks\n'
+            printf 'storePassword=%s\n' "$ANDROID_SIGNING_STORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_SIGNING_KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$ANDROID_SIGNING_KEY_PASSWORD"
+          } > keystore.properties
+          chmod 600 keystore.properties
+
+      - name: Mobile unit tests, lint and release-signed assembly
+        run: ./gradlew :app:testMobileDebugUnitTest :app:lintMobileDebug :app:assembleMobileRelease --max-workers=2 --no-configuration-cache --console=plain
 
       - name: Check mobile package and signing
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
-          apks=(app/build/outputs/apk/mobile/debug/*.apk)
+          apks=(app/build/outputs/apk/mobile/release/*.apk)
           if [[ "${#apks[@]}" != 1 ]]; then
             echo "::error::Expected exactly one mobile debug APK, found ${#apks[@]}"
             exit 1
@@ -85,14 +112,19 @@ jobs:
           apk="${apks[0]}"
           test -s "$apk"
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
+          fingerprint="$("$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          [[ -n "$fingerprint" && "${fingerprint,,}" == "${ANDROID_SIGNING_CERT_SHA256,,}" ]] || {
+            echo "::error::Signer does not match the pinned AniLumos release certificate"
+            exit 1
+          }
           badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
-          grep -Fq "name='com.anilumos.app.debug'" <<< "$badging"
+          grep -Fq "name='com.anilumos.app'" <<< "$badging"
           if grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' <<< "$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump xmltree "$apk" AndroidManifest.xml)"; then
             echo "::error::Mobile preview unexpectedly carries a TV launcher"
             exit 1
           fi
           mkdir -p dist
-          cp "$apk" dist/AniLumos-MOBILE-BETA-debug.apk
+          cp "$apk" dist/AniLumos-MOBILE-BETA-signed.apk
           (cd dist && sha256sum AniLumos-MOBILE-BETA-debug.apk > SHA256SUMS)
 
       - name: Publish permanent experimental mobile release
@@ -109,14 +141,14 @@ jobs:
             exit 0
           fi
           cat > notes.md <<EOF
-          **ANDROID PHONE / TABLET BETA — NOT FOR TV OR STABLE UPGRADES**
+          **ANDROID PHONE / TABLET BETA — RELEASE-SIGNED, EXPERIMENTAL, NOT FOR TV**
 
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: `feature/mobile-polish`
 
-          Mobile unit tests, lint, APK packaging and debug signature verified in this workflow.
+          Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
-          Debug package: `com.anilumos.app.debug`. It installs separately from the release-signed stable app and will not upgrade it.
+          Release-signed package: `com.anilumos.app`. Compatible upgrades require Android to accept this version code and matching signing certificate.
 
           AniLife: https://github.com/anilifecommunity/android-and-tv
           This app uses code from Morphe. To learn more, visit https://morphe.software
