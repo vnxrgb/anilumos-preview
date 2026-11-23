@@ -1,4 +1,4 @@
-name: Publish TV debug preview
+name: Publish TV signed preview
 
 on:
   push:
@@ -99,7 +99,7 @@ jobs:
           grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' <<< "$manifest"
           mkdir -p dist
           cp "$apk" dist/AniLumos-TV-ALPHA-signed.apk
-          (cd dist && sha256sum AniLumos-TV-ALPHA-debug.apk > SHA256SUMS)
+          (cd dist && sha256sum AniLumos-TV-ALPHA-signed.apk > SHA256SUMS)
 
       - name: Publish permanent experimental TV release
         env:
@@ -118,16 +118,16 @@ jobs:
           **ANDROID TV / AMAZON FIRE TV ALPHA — RELEASE-SIGNED, EXPERIMENTAL, NOT FOR PHONES**
 
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
-          Branch: `feature/tv-polish`
+          Branch: 'feature/tv-polish'
 
           Unit tests, TV lint, APK packaging and release certificate fingerprint verified in this workflow.
           Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
-          Release-signed package: `com.anilumos.app`. Compatible upgrades require Android to accept this version code and matching signing certificate.
+          Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
 
           AniLife: https://github.com/anilifecommunity/android-and-tv
           This app uses code from Morphe. To learn more, visit https://morphe.software
           See the source repository's LICENSE and notices.
           EOF
-          gh release create "$TAG" dist/AniLumos-TV-ALPHA-debug.apk \
+          gh release create "$TAG" dist/AniLumos-TV-ALPHA-signed.apk \
             --target "$GITHUB_SHA" --prerelease --title "TV / Fire TV ALPHA | ${SOURCE_SHA:0:12}" --notes-file notes.md
           echo "TV prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
