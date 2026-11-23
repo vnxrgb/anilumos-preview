@@ -10,8 +10,8 @@
 
 | Label | Devices | Package type | Notes |
 | --- | --- | --- | --- |
-| `mobile-preview-*` | Android phones and tablets | Debug-signed `com.anilumos.app.debug` | Experimental. Installs separately from the release-signed stable app; does not upgrade stable. |
-| `tv-preview-*` | Android TV / Amazon Fire TV | Debug-signed `com.anilumos.app.debug` | Experimental and remote/device testing still required. Do **not** install on your phone. |
+| `mobile-beta-signed-*` | Android phones and tablets | Release-signed `com.anilumos.app` | Experimental. Signed using the same release certificate as stable; Android version code must also permit upgrades. |
+| `tv-alpha-signed-*` | Android TV / Amazon Fire TV | Debug-signed `com.anilumos.app.debug` | Experimental and remote/device testing still required. Signed with the release certificate; do **not** install on your phone. |
 
 Each release is tied to a specific **source commit** and has a SHA-256 checksum, not a moving `latest` APK. Releases are marked **Pre-release** and cannot be mistaken for stable production releases. Source code, provider support, original package identifiers, and legal/attribution notices remain in the original project.
 
@@ -19,11 +19,11 @@ Each release is tied to a specific **source commit** and has a SHA-256 checksum,
 
 ### How to publish
 
-Choose **Actions** in this repository and run **Publish mobile debug preview** or **Publish TV debug preview**. These workflows check out the corresponding source branches, run unit tests and lint, build the specific Android flavor, verify APK signing and packaging, and publish only on success.
+Choose **Actions** in this repository and run **Publish mobile signed preview** or **Publish TV signed preview**. These workflows check out the corresponding source branches, run unit tests and lint, build the specific Android flavor, verify APK signing and packaging, and publish only on success.
 
-**Mobile publishing setup:** In this preview repository, open **Settings → Secrets and variables → Actions → Variables** and configure `ANILIST_CLIENT_ID`, `MAL_CLIENT_ID`, and `MAL_REDIRECT_URI` (using the same values as the source repository). The mobile workflow intentionally refuses to publish when these are missing. Never enter sensitive passwords as variables.
+**Publishing setup:** In this preview repository, open **Settings → Secrets and variables → Actions → Variables** and configure `ANILIST_CLIENT_ID`, `MAL_CLIENT_ID`, and `MAL_REDIRECT_URI` (using the same values as the source repository). The mobile workflow intentionally refuses to publish when these are missing. Set these **release-signing secrets** in this preview repository's Actions secrets: `ANDROID_SIGNING_KEYSTORE_BASE64`, `ANDROID_SIGNING_STORE_PASSWORD`, `ANDROID_SIGNING_KEY_PASSWORD`. Set the **Actions variables** `ANDROID_SIGNING_KEY_ALIAS` and `ANDROID_SIGNING_CERT_SHA256`. Use the exact same signing configuration as the original AniLumos release; the fingerprint check refuses mismatched certificates. Do not expose the keystore or passwords in commits or ordinary variables.
 
-These are *debug* APKs, not release-signed stable upgrades. Never use a preview APK to update an installed stable application. Do not test real account credentials on untrusted devices.
+New signed previews use the pinned AniLumos release certificate and can upgrade matching-package installations when their version codes allow it. Experimental code can still have bugs; back up important app data before installing. Historical migrated debug APKs keep their original signing identity. Do not test real account credentials on untrusted devices.
 
 ## Attribution
 
