@@ -174,6 +174,11 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/mobile-polish'
 
+          Changes in this preview build:
+          - Added Soft, Balanced and Vivid live-frame cinema lighting presets to player settings.
+          - Refined AniLumos Connect QR pairing instructions on phones.
+          - Kept the existing secure TV pairing confirmation and scanner.
+
           Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
           Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
