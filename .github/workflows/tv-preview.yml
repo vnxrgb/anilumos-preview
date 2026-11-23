@@ -128,6 +128,12 @@ jobs:
           This app uses code from Morphe. To learn more, visit https://morphe.software
           See the source repository's LICENSE and notices.
           EOF
-          gh release create "$TAG" dist/AniLumos-TV-ALPHA-signed.apk \
-            --target "$GITHUB_SHA" --prerelease --title "TV / Fire TV ALPHA | ${SOURCE_SHA:0:12}" --notes-file notes.md
+          # Explicit repository target matters because checkout pulls source from a different repo.
+          # Log a specific publishing-permission failure without exposing credentials.
+          if ! gh release create "$TAG" dist/AniLumos-TV-ALPHA-signed.apk \
+            --repo vnxrgb/anilumos-preview \
+            --target "$GITHUB_SHA" --prerelease --title "TV / Fire TV ALPHA | ${SOURCE_SHA:0:12}" --notes-file notes.md; then
+            echo "::error::TV build and release signature passed, but GitHub denied prerelease creation. Check preview repository Actions token permissions and release policy."
+            exit 1
+          fi
           echo "TV prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
