@@ -103,13 +103,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          apks=(app/build/outputs/apk/mobile/release/*.apk)
-          if [[ "${#apks[@]}" != 1 ]]; then
-            echo "::error::Expected exactly one universal mobile release APK, found ${#apks[@]}"
+          # The build intentionally produces two ABI splits plus one universal APK.
+          # Only publish the explicitly named universal artifact.
+          apk="app/build/outputs/apk/mobile/release/Anilumos.apk"
+          if [[ ! -s "$apk" ]]; then
+            echo "::error::Universal mobile release APK missing at $apk"
+            ls -lah app/build/outputs/apk/mobile/release/ || true
             exit 1
           fi
-          apk="${apks[0]}"
           test -s "$apk"
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$apk"
           fingerprint="$("$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
