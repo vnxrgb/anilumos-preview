@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths: ['.github/workflows/tv-preview.yml']
   workflow_dispatch:
+  schedule:
+    - cron: '47 */6 * * *'
 
 permissions:
   contents: write
@@ -42,21 +44,42 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "tag=tv-alpha-signed-${sha:0:12}-run${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
+      - name: Skip if this source revision already has a signed preview
+        id: preview_guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="${{ steps.source.outputs.sha }}"
+          prefix="tv-alpha-signed-${sha:0:12}-run"
+          if gh release list --repo vnxrgb/anilumos-preview --limit 100 --json tagName \
+              | jq -e --arg prefix "$prefix" '[.[] | select(.tagName | startswith($prefix))] | length > 0' >/dev/null; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Signed preview already exists for $sha. Skipping duplicate build." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up JDK 17
+        if: steps.preview_guard.outputs.skip != 'true'
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Validate Gradle wrapper
+        if: steps.preview_guard.outputs.skip != 'true'
         uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - name: Set up Gradle
+        if: steps.preview_guard.outputs.skip != 'true'
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-read-only: false
 
       - name: Require and restore protected release signing key
+        if: steps.preview_guard.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -78,9 +101,11 @@ jobs:
           chmod 600 keystore.properties
 
       - name: TV unit tests, lint and release-signed assembly
+        if: steps.preview_guard.outputs.skip != 'true'
         run: ./gradlew :app:testTvDebugUnitTest :app:lintTvDebug :app:assembleTvRelease --max-workers=2 --no-configuration-cache --console=plain
 
       - name: Check TV package and signing
+        if: steps.preview_guard.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -102,6 +127,7 @@ jobs:
           (cd dist && sha256sum AniLumos-TV-ALPHA-signed.apk > SHA256SUMS)
 
       - name: Publish permanent experimental TV release
+        if: steps.preview_guard.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: vnxrgb/anilumos-preview
