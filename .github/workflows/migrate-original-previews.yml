@@ -1,0 +1,85 @@
+name: Migrate original experimental APKs
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/migrate-original-previews.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migrate-original-previews
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Copy the exact signed/debug experimental APKs without ZIPs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: vnxrgb/anilumos-preview
+    steps:
+      - name: Download and verify the original APKs, then publish one APK per preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          for oldtag in v1.0.3-beta.1 v1.0.2-alpha.2 anilumos-tv-preview; do
+            case "$oldtag" in
+              v1.0.3-beta.1)
+                newtag="migrated-mobile-v1.0.3-beta.1"
+                label="MOBILE BETA (release-signed) — v1.0.3-beta.1"
+                ;;
+              v1.0.2-alpha.2)
+                newtag="migrated-tv-v1.0.2-alpha.2"
+                label="TV ALPHA (release-signed) — v1.0.2-alpha.2"
+                ;;
+              anilumos-tv-preview)
+                newtag="migrated-tv-anilumos-tv-preview"
+                label="TV ALPHA (debug-signed) — earlier preview"
+                ;;
+            esac
+            if gh release view "$newtag" >/dev/null 2>&1; then
+              echo "Already migrated: $newtag"
+              continue
+            fi
+            source="$(gh api "repos/vnxrgb/Anilumos/releases/tags/$oldtag")"
+            [[ "$(jq -r '.prerelease' <<< "$source")" == "true" ]] || {
+              echo "::error::Refusing to migrate non-prerelease $oldtag"
+              exit 1
+            }
+            work="$RUNNER_TEMP/$oldtag"
+            mkdir -p "$work"
+            gh release download "$oldtag" --repo vnxrgb/Anilumos --pattern '*.apk' --dir "$work"
+            gh release download "$oldtag" --repo vnxrgb/Anilumos --pattern 'SHA256SUMS' --dir "$work"
+            shopt -s nullglob
+            apks=("$work"/*.apk)
+            if (( ${#apks[@]} != 1 )); then
+              echo "::error::Expected exactly one APK for $oldtag, got ${#apks[@]}"
+              exit 1
+            fi
+            (cd "$work" && sha256sum --check --ignore-missing SHA256SUMS)
+            apk="${apks[0]}"
+            test -s "$apk"
+            digest="$(sha256sum "$apk" | cut -d' ' -f1)"
+            cat > "$work/notes.md" <<EOF
+          **MIGRATED EXPERIMENTAL APK — EXACT ORIGINAL BINARY (NOT REBUILT)**
+
+          Original release: https://github.com/vnxrgb/Anilumos/releases/tag/$oldtag
+          Original GitHub release title: $(jq -r '.name' <<< "$source")
+          SHA-256: \`$digest\`
+
+          This is the same APK that was available on the original release, with its original signing identity. It is **not** a newly built APK and must not be confused with the new \`mobile-beta-*\` or \`tv-alpha-*\` debug previews.
+          Device type: $label
+
+          AniLife: https://github.com/anilifecommunity/android-and-tv
+          This app uses code from Morphe. To learn more, visit https://morphe.software
+          See source LICENSE and notices for applicable terms.
+          EOF
+            gh release create "$newtag" "$apk" \
+              --repo vnxrgb/anilumos-preview \
+              --target "$GITHUB_SHA" --prerelease --title "$label" --notes-file "$work/notes.md"
+            echo "Migrated $oldtag -> $newtag ($digest)"
+          done
