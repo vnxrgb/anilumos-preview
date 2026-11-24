@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 441cf78ee28ed3493c12feb346a653f2a7f93b6b
+          ref: 1c18ab51197b382121b43c4fd67098256a54bdd2
           persist-credentials: false
 
       - name: Record precise source revision
