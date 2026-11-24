@@ -170,6 +170,16 @@ jobs:
           fi
           echo "Release publishing targets vnxrgb/anilumos-preview; only the preview repository receives this APK."
 
+      - name: Preserve verified signed mobile APK
+        if: steps.preview_guard.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AniLumos-MOBILE-BETA-signed
+          path: |
+            dist/AniLumos-MOBILE-BETA-signed.apk
+            dist/SHA256SUMS
+          if-no-files-found: error
+
       - name: Publish permanent experimental mobile release
         if: steps.preview_guard.outputs.skip != 'true'
         env:
@@ -190,30 +200,20 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/mobile-polish'
 
-          Features in this combined mobile beta:
-          - Added 12 theme presets, selectable glass materials and persistent appearance adjustments.
-          - Constrained Wrapped dashboard width for larger tablet displays.
-          - Moved mood discovery into the existing Discover swipe-card deck; mood-matched catalogue and personalized picks share the same interface. Removed duplicate mood controls from Browse.
-          - AniLumos Wrapped: annual dashboard, real poster podium, measured playback statistics, viewing personality and locally rendered 1080 x 1920 PNG sharing.
-          - Smart Resume: per-episode offline playback positions and time remaining.
-          - Personalized Calendar: Following-only episodes from saved and previously watched anime.
-          - Stream Health Assistant: actual native-player stalls offer manual source switching.
-          - Anime Collections: quick-create Weekend Queue, Comfort Rewatches and Movie Night lists.
-          - Episode Notes: per-episode editable device-local notes, including clearing notes.
-          - Smart Download Queue: active/paused/recoverable counts, pause all, resume all, retry failed.
-          - Retains the new cinema lighting and Night Cinema player viewing tools.
-          - UI polish: Following-only schedule chip now matches theme and responsive margins.
-          - UI polish: collection starter card hides after all three templates are created.
-          - Redesigned download queue with neutral glass action pills and individual status counters.
-          - Removed visible Home reorder glyph while retaining hold-to-rearrange.
-          - Blended Browse header at rest and faded its floating glass edge while scrolling.
-          - Removed the rectangular backing behind the Appearance preview and rounded the Downloads empty-state panel.
-          - Aligned Browse filter button with a circular shape and active-filter indicator.
-          - Refined Discover header and separated neutral mood chips from library sources.
+          ## What's new
+          - 12 new themes and customizable frosted glass.
+          - AniLumos Wrapped with artwork, personality cards and image sharing.
+          - Mood-based Discover, Smart Resume and personalized release calendar.
+          - Stream Health Assistant, collection presets and episode notes.
+          - Smart download queue and cinema lighting controls.
 
-          Wrapped records local activity only. Measured playback time starts with this update; external players and older elapsed viewing time are not reconstructed.
-          Collection presets start empty. Stream recovery is manual, not provider health measurement.
-          Real-device TV pairing and the phone-as-TV remote are not included in this release.
+          ## Improvements and fixes
+          - Refined Home, Browse, Discover, Downloads and tablet layouts.
+          - Fixed glass preference saving, backup and restore.
+          - Fixed build and packaging issues.
+
+          Wrapped uses local viewing data; measured playback time begins with this update.
+          Stream recovery offers manual source switching. Physical device testing is pending.
 
           Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
