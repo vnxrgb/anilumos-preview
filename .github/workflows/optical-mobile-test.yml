@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: optical-mobile-test
@@ -47,7 +47,7 @@ jobs:
           set -euo pipefail
           sha="$(git rev-parse HEAD)"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "tag=mobile-beta-signed-${sha:0:12}-run${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "tag=optical-mobile-signed-${sha:0:12}-run${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Require working OAuth configuration
         shell: bash
@@ -138,7 +138,7 @@ jobs:
             exit 1
           fi
           mkdir -p dist
-          cp "$apk" dist/AniLumos-OPTICAL-MOBILE-test.apk
+          cp "$apk" dist/AniLumos-OPTICAL-MOBILE-signed.apk
           (cd dist && sha256sum AniLumos-OPTICAL-MOBILE-test.apk > SHA256SUMS)
 
       - name: Upload signed optical mobile test
@@ -149,3 +149,35 @@ jobs:
             dist/AniLumos-OPTICAL-MOBILE-test.apk
             dist/SHA256SUMS
           if-no-files-found: error
+
+      - name: Publish signed optical mobile prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.source.outputs.tag }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo=vnxrgb/anilumos-preview
+          if gh release view "$TAG" --repo "$repo" >/dev/null 2>&1; then
+            echo "Release already exists; leaving its assets unchanged."
+            exit 0
+          fi
+          cat > notes.md <<EOF
+          Experimental mobile optical glass preview. Not a stable update or TV build.
+
+          - Refined optical glass styling and removed the legacy navigation glow.
+          - Removed obsolete glass customization settings.
+          - Improved mood matching, added four moods and expanded discovery variety.
+          - Preserved the current player and original ambient lighting.
+          - Restored SIMKL and Discord configuration inputs.
+
+          Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
+          Unit tests, lint and signing verification passed. Device testing pending.
+          This app uses code from Morphe. To learn more, visit https://morphe.software
+          See source repository license and third-party notices.
+          EOF
+          gh release create "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS \
+            --repo "$repo" --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "Optical Glass Mobile Preview | ${SOURCE_SHA:0:12}" --notes-file notes.md
+          echo "Direct APK: https://github.com/$repo/releases/download/$TAG/AniLumos-OPTICAL-MOBILE-signed.apk" >> "$GITHUB_STEP_SUMMARY"
