@@ -1,4 +1,5 @@
 name: Publish mobile signed preview
+# Combined eight-feature mobile beta: rebuild after Compose LazyRow compile fixes.
 
 on:
   push:
