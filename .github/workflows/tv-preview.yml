@@ -148,6 +148,7 @@ jobs:
 
           Changes in this preview build:
           - Added Soft, Balanced and Vivid cinema-lighting presets to the TV player settings.
+          - Extended the fullscreen side-letterbox glow with softer, wider live-video colour blooms.
           - Renamed the TV pairing screen to AniLumos Connect and clarified phone QR scanning and six-digit confirmation.
           - Retained the existing QR address display and secure login handshake.
 
