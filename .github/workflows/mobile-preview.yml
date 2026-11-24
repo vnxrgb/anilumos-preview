@@ -191,6 +191,8 @@ jobs:
           Branch: 'feature/mobile-polish'
 
           Features in this combined mobile beta:
+          - Added 12 theme presets, selectable glass materials and persistent appearance adjustments.
+          - Constrained Wrapped dashboard width for larger tablet displays.
           - Moved mood discovery into the existing Discover swipe-card deck; mood-matched catalogue and personalized picks share the same interface. Removed duplicate mood controls from Browse.
           - AniLumos Wrapped: annual dashboard, real poster podium, measured playback statistics, viewing personality and locally rendered 1080 x 1920 PNG sharing.
           - Smart Resume: per-episode offline playback positions and time remaining.
