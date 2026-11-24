@@ -1,5 +1,5 @@
 name: Build experimental optical mobile
-# Combined eight-feature mobile beta: rebuild after Compose LazyRow compile fixes.
+# Mobile branding and detail ambience test: source 7b44a2349188.
 
 on:
   push:
@@ -171,6 +171,8 @@ jobs:
           - Improved mood matching, added four moods and expanded discovery variety.
           - Preserved the current player and original ambient lighting.
           - Restored SIMKL and Discord configuration inputs.
+          - New purple A-and-dot branding, adaptive launcher icons and native launch animation.
+          - Artwork-driven ambient lighting on anime details pages.
 
           Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
           Unit tests, lint and signing verification passed. Device testing pending.
