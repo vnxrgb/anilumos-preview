@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: c01adff5715350fb536d4bac53651e9e65472764
+          ref: 441cf78ee28ed3493c12feb346a653f2a7f93b6b
           persist-credentials: false
 
       - name: Record precise source revision
@@ -177,7 +177,7 @@ jobs:
           - Redesigned AniLumos Wrapped share image with artwork-driven colors and personality cards.
           - Six light themes, system appearance, brand purple default, Jade and guided tour touch fix.
           - Polished home header, genre chips, resume cards and section spacing.
-          - Spring-animated compact dock with Search on the left and Home on the right.
+          - Spring-animated compact dock with Home on the left and Search on the right in separate glass discs.
           - Independent vertical dock gesture detection and light-mode contrast corrections.
           - Dock collapse no longer depends on the pinned header preference.
 
