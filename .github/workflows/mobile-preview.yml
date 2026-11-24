@@ -191,7 +191,7 @@ jobs:
           Branch: 'feature/mobile-polish'
 
           Features in this combined mobile beta:
-          - Mood-based discovery shortcuts using existing catalogue genre filters.
+          - Unified mood-based catalogue discovery with a personalized For You mood row powered by the existing TasteEngine.
           - AniLumos Wrapped: locally recorded completions, active days and current streak.
           - Smart Resume: per-episode offline playback positions and time remaining.
           - Personalized Calendar: Following-only episodes from saved and previously watched anime.
