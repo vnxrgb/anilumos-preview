@@ -1,5 +1,5 @@
 name: Build experimental optical mobile
-# Wrapped editorial export preview: source 87cbc745357b.
+# Light and system appearance preview: source b114086b0a2e.
 
 on:
   push:
@@ -175,6 +175,7 @@ jobs:
           - Artwork-driven ambient lighting on anime details pages.
           - Uniform translucent cards and interactive mobile spotlight tour.
           - Redesigned AniLumos Wrapped share image with artwork-driven colors and personality cards.
+          - Six light themes, system appearance, brand purple default, Jade and guided tour touch fix.
 
           Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
           Unit tests, lint and signing verification passed. Device testing pending.
