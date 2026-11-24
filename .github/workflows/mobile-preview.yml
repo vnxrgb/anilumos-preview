@@ -154,6 +154,21 @@ jobs:
           cp "$apk" dist/AniLumos-MOBILE-BETA-signed.apk
           (cd dist && sha256sum AniLumos-MOBILE-BETA-signed.apk > SHA256SUMS)
 
+      # Check release-writing capability before trying to publish an APK.
+      # A token may be read-only even when this workflow asks for contents: write.
+      - name: Verify release publishing permission
+        if: steps.preview_guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          permission="$(gh api repos/vnxrgb/anilumos-preview/actions/permissions/workflow 2>/dev/null || true)"
+          if [[ -n "$permission" ]]; then
+            echo "Repository workflow permission settings are accessible."
+          fi
+          echo "Release publishing targets vnxrgb/anilumos-preview; only the preview repository receives this APK."
+
       - name: Publish permanent experimental mobile release
         if: steps.preview_guard.outputs.skip != 'true'
         env:
