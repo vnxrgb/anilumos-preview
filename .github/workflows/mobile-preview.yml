@@ -200,6 +200,8 @@ jobs:
           - Episode Notes: per-episode editable device-local notes, including clearing notes.
           - Smart Download Queue: active/paused/recoverable counts, pause all, resume all, retry failed.
           - Retains the new cinema lighting and Night Cinema player viewing tools.
+          - UI polish: Following-only schedule chip now matches theme and responsive margins.
+          - UI polish: collection starter card hides after all three templates are created.
 
           Wrapped records only activity tracked on this device, not full account history.
           Collection presets start empty. Stream recovery is manual, not provider health measurement.
