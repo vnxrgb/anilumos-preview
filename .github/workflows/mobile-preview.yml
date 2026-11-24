@@ -192,7 +192,7 @@ jobs:
 
           Features in this combined mobile beta:
           - Moved mood discovery into the existing Discover swipe-card deck; mood-matched catalogue and personalized picks share the same interface. Removed duplicate mood controls from Browse.
-          - AniLumos Wrapped: locally recorded completions, active days and current streak.
+          - Anime Wrapped: tappable annual recap, monthly completion chart, shareable recap, measured native playback time, annual title and genre rankings.
           - Smart Resume: per-episode offline playback positions and time remaining.
           - Personalized Calendar: Following-only episodes from saved and previously watched anime.
           - Stream Health Assistant: actual native-player stalls offer manual source switching.
@@ -208,7 +208,7 @@ jobs:
           - Aligned Browse filter button with a circular shape and active-filter indicator.
           - Refined Discover header and separated neutral mood chips from library sources.
 
-          Wrapped records only activity tracked on this device, not full account history.
+          Wrapped records local activity only. Measured playback time starts with this update; external players and older elapsed viewing time are not reconstructed.
           Collection presets start empty. Stream recovery is manual, not provider health measurement.
           Real-device TV pairing and the phone-as-TV remote are not included in this release.
 
