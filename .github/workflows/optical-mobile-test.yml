@@ -1,5 +1,5 @@
 name: Build experimental optical mobile
-# Home polish and folding dock preview: source fbafc5a970a1.
+# Dock gesture and light contrast fix: source 4c438ee4c278.
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: fbafc5a970a1e54c24c11983bc9f1665c524acfc
+          ref: 4c438ee4c278c2230c7e57ac096e396917af4318
           persist-credentials: false
 
       - name: Record precise source revision
@@ -178,6 +178,7 @@ jobs:
           - Six light themes, system appearance, brand purple default, Jade and guided tour touch fix.
           - Polished home header, genre chips, resume cards and section spacing.
           - Spring-animated compact dock with Search on the left and Home on the right.
+          - Independent vertical dock gesture detection and light-mode contrast corrections.
 
           Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
           Unit tests, lint and signing verification passed. Device testing pending.
