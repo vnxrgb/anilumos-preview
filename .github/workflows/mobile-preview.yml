@@ -202,6 +202,11 @@ jobs:
           - Retains the new cinema lighting and Night Cinema player viewing tools.
           - UI polish: Following-only schedule chip now matches theme and responsive margins.
           - UI polish: collection starter card hides after all three templates are created.
+          - Redesigned download queue with neutral glass action pills and individual status counters.
+          - Removed visible Home reorder glyph while retaining hold-to-rearrange.
+          - Removed separate handheld title bar fill and softened Browse header transition.
+          - Aligned Browse filter button with a circular shape and active-filter indicator.
+          - Refined Discover header and separated neutral mood chips from library sources.
 
           Wrapped records only activity tracked on this device, not full account history.
           Collection presets start empty. Stream recovery is manual, not provider health measurement.
