@@ -189,11 +189,20 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/mobile-polish'
 
-          Features included in this mobile beta (source revision pinned above):
-          - Added Night Cinema, restore-device-brightness, and distraction-free viewing tools to player settings.
-          - Added a Following-only schedule filter for saved and previously watched titles.
-          - Added an annual AniLumos Wrapped card with locally recorded completed episodes, active days and current streak; clearly labels the data as device-local.
-          - Added mood-based genre shortcuts in mobile search, using existing catalogue filters.
+          Features in this combined mobile beta:
+          - Mood-based discovery shortcuts using existing catalogue genre filters.
+          - AniLumos Wrapped: locally recorded completions, active days and current streak.
+          - Smart Resume: per-episode offline playback positions and time remaining.
+          - Personalized Calendar: Following-only episodes from saved and previously watched anime.
+          - Stream Health Assistant: actual native-player stalls offer manual source switching.
+          - Anime Collections: quick-create Weekend Queue, Comfort Rewatches and Movie Night lists.
+          - Episode Notes: per-episode editable device-local notes, including clearing notes.
+          - Smart Download Queue: active/paused/recoverable counts, pause all, resume all, retry failed.
+          - Retains the new cinema lighting and Night Cinema player viewing tools.
+
+          Wrapped records only activity tracked on this device, not full account history.
+          Collection presets start empty. Stream recovery is manual, not provider health measurement.
+          Real-device TV pairing and the phone-as-TV remote are not included in this release.
 
           Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
