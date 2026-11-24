@@ -193,6 +193,8 @@ jobs:
           - Added Soft, Balanced and Vivid live-frame cinema lighting presets to player settings.
           - Refined AniLumos Connect QR pairing instructions on phones.
           - Kept the existing secure TV pairing confirmation and scanner.
+          - Added Night Cinema for softer glow and dimmer player-only brightness.
+          - Added a one-tap restore-device-brightness action and distraction-free clock/status-bar toggle.
 
           Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
