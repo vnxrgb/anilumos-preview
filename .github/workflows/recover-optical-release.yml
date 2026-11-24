@@ -1,0 +1,66 @@
+name: Recover signed optical mobile release
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/recover-optical-release.yml']
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Verified optical mobile build run ID'
+        required: true
+        default: '45478075744'
+      source_sha:
+        description: 'Source SHA recorded in the verified build'
+        required: true
+        default: 'b114086b0a2ea6565ef3ff5ea248d74280787b53'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.run_id || '45478075744' }}
+      SOURCE_SHA: ${{ inputs.source_sha || 'b114086b0a2ea6565ef3ff5ea248d74280787b53' }}
+    steps:
+      - name: Verify original build and publishing-only failure
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ && "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > run.json
+          jq -e '.path == ".github/workflows/optical-mobile-test.yml" and .status == "completed"' run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/jobs" > jobs.json
+          jq -e 'any(.jobs[]; any(.steps[]; .name == "Mobile unit tests, lint and release-signed assembly" and .conclusion == "success") and any(.steps[]; .name == "Check mobile package and signing" and .conclusion == "success") and any(.steps[]; .name == "Upload signed optical mobile test" and .conclusion == "success"))' jobs.json
+          job_id="$(jq -r '.jobs[] | select(any(.steps[]; .name == "Check mobile package and signing" and .conclusion == "success")) | .id' jobs.json)"
+          gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" > build.log
+          grep -Fq "SOURCE_SHA: $SOURCE_SHA" build.log
+          number="$(jq -r .run_number run.json)"
+          echo "tag=optical-mobile-signed-${SOURCE_SHA:0:12}-run$number" >> "$GITHUB_OUTPUT"
+          echo "target=$(jq -r .head_sha run.json)" >> "$GITHUB_OUTPUT"
+      - name: Download previously signed APK
+        uses: actions/download-artifact@v4
+        with:
+          name: AniLumos-OPTICAL-MOBILE-test
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ github.token }}
+          path: dist
+      - name: Verify checksums and publish without recompiling
+        env:
+          TAG: ${{ steps.verify.outputs.tag }}
+          TARGET: ${{ steps.verify.outputs.target }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum -c SHA256SUMS)
+          for attempt in 1 2 3; do
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release upload "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber && exit 0
+            else
+              gh release create "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --target "$TARGET" --prerelease --latest=false --title "Optical Glass Mobile Preview | ${SOURCE_SHA:0:12}" --notes "Recovered verified signed APK from build $RUN_ID. Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA. Device testing pending. This app uses code from Morphe. To learn more, visit https://morphe.software" && exit 0
+            fi
+            sleep "$((attempt * 10))"
+          done
+          exit 1
