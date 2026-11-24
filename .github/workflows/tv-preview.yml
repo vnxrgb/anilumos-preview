@@ -171,3 +171,5 @@ jobs:
             exit 1
           fi
           echo "TV prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
+
+# Rebuild consolidated glass UI and release guided tour preview.
