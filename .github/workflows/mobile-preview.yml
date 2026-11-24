@@ -189,7 +189,7 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/mobile-polish'
 
-          Changes since the previous signed mobile beta:
+          Features included in this mobile beta (source revision pinned above):
           - Added Night Cinema, restore-device-brightness, and distraction-free viewing tools to player settings.
           - Added a Following-only schedule filter for saved and previously watched titles.
           - Added an annual AniLumos Wrapped card with locally recorded completed episodes, active days and current streak; clearly labels the data as device-local.
