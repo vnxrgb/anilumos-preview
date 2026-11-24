@@ -35,7 +35,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/jobs" > jobs.json
           jq -e 'any(.jobs[]; any(.steps[]; .name == "Mobile unit tests, lint and release-signed assembly" and .conclusion == "success") and any(.steps[]; .name == "Check mobile package and signing" and .conclusion == "success") and any(.steps[]; .name == "Upload signed optical mobile test" and .conclusion == "success"))' jobs.json
           job_id="$(jq -r '.jobs[] | select(any(.steps[]; .name == "Check mobile package and signing" and .conclusion == "success")) | .id' jobs.json)"
-          gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" > build.log
+          gh api --allow-escape-sequences "repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" > build.log
           grep -Fq "SOURCE_SHA: $SOURCE_SHA" build.log
           number="$(jq -r .run_number run.json)"
           echo "tag=optical-mobile-signed-${SOURCE_SHA:0:12}-run$number" >> "$GITHUB_OUTPUT"
