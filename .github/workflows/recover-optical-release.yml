@@ -49,6 +49,7 @@ jobs:
           path: dist
       - name: Verify checksums and publish without recompiling
         env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
           TAG: ${{ steps.verify.outputs.tag }}
           TARGET: ${{ steps.verify.outputs.target }}
         shell: bash
