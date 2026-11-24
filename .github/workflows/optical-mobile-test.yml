@@ -152,7 +152,7 @@ jobs:
 
       - name: Publish signed optical mobile prerelease
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
           TAG: ${{ steps.source.outputs.tag }}
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
         shell: bash
