@@ -1,5 +1,5 @@
 name: Build experimental optical mobile
-# Mobile branding and detail ambience test: source 7b44a2349188.
+# Mobile spotlight tour and uniform surfaces: source 800a85652c29.
 
 on:
   push:
@@ -173,6 +173,7 @@ jobs:
           - Restored SIMKL and Discord configuration inputs.
           - New purple A-and-dot branding, adaptive launcher icons and native launch animation.
           - Artwork-driven ambient lighting on anime details pages.
+          - Uniform translucent cards and interactive mobile spotlight tour.
 
           Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
           Unit tests, lint and signing verification passed. Device testing pending.
