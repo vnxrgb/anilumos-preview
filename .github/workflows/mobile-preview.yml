@@ -192,7 +192,7 @@ jobs:
 
           Features in this combined mobile beta:
           - Moved mood discovery into the existing Discover swipe-card deck; mood-matched catalogue and personalized picks share the same interface. Removed duplicate mood controls from Browse.
-          - Anime Wrapped: tappable annual recap, monthly completion chart, shareable recap, measured native playback time, annual title and genre rankings.
+          - AniLumos Wrapped: annual dashboard, real poster podium, measured playback statistics, viewing personality and locally rendered 1080 x 1920 PNG sharing.
           - Smart Resume: per-episode offline playback positions and time remaining.
           - Personalized Calendar: Following-only episodes from saved and previously watched anime.
           - Stream Health Assistant: actual native-player stalls offer manual source switching.
@@ -204,7 +204,8 @@ jobs:
           - UI polish: collection starter card hides after all three templates are created.
           - Redesigned download queue with neutral glass action pills and individual status counters.
           - Removed visible Home reorder glyph while retaining hold-to-rearrange.
-          - Removed separate handheld title bar fill and softened Browse header transition.
+          - Blended Browse header at rest and faded its floating glass edge while scrolling.
+          - Removed the rectangular backing behind the Appearance preview and rounded the Downloads empty-state panel.
           - Aligned Browse filter button with a circular shape and active-filter indicator.
           - Refined Discover header and separated neutral mood chips from library sources.
 
