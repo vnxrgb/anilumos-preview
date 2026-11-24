@@ -147,6 +147,8 @@ jobs:
           Branch: 'feature/tv-polish'
 
           Changes in this preview build:
+          - Added 12 theme presets, selectable glass materials and persistent appearance adjustments.
+          - Integrated local Wrapped activity dashboard, image sharing, mood discovery, download queue and shared library improvements; remote interaction still requires testing.
           - Added Soft, Balanced and Vivid cinema-lighting presets to the TV player settings.
           - Extended the fullscreen side-letterbox glow with softer, wider live-video colour blooms.
           - Renamed the TV pairing screen to AniLumos Connect and clarified phone QR scanning and six-digit confirmation.
