@@ -120,6 +120,11 @@ jobs:
           badging="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk")"
           grep -Fq "name='com.anilumos.app'" <<< "$badging"
           grep -Fq "uses-feature-not-required: name='android.hardware.touchscreen'" <<< "$badging"
+          grep -Fq "uses-feature-not-required: name='android.software.leanback'" <<< "$badging"
+          if ! grep -Eq "^application:.*banner='" <<< "$badging"; then
+            echo "::error::TV launcher banner missing from release APK"
+            exit 1
+          fi
           manifest="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump xmltree "$apk" AndroidManifest.xml)"
           grep -Fq 'android.intent.category.LEANBACK_LAUNCHER' <<< "$manifest"
           mkdir -p dist
@@ -183,6 +188,10 @@ jobs:
             echo "::error::TV build and release signature passed, but GitHub denied prerelease creation. Check preview repository Actions token permissions and release policy."
             exit 1
           fi
+          # Verify the permanent release actually contains the exact standalone TV APK and metadata.
+          assets="$(gh release view "$TAG" --repo "$GH_REPO" --json assets --jq '.assets[].name')"
+          grep -Fxq 'AniLumos-TV-ALPHA-signed.apk' <<< "$assets"
+          grep -Fxq 'TV-UPDATE.json' <<< "$assets"
           echo "TV prerelease: https://github.com/$GH_REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
 
 # Rebuild consolidated glass UI and release guided tour preview.
