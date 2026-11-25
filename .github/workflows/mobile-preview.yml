@@ -1,5 +1,5 @@
 name: Publish mobile signed preview
-# Combined eight-feature mobile beta: rebuild after Compose LazyRow compile fixes.
+# Mobile polish signed preview: franchise watch-order timeline and progress.
 
 on:
   push:
@@ -201,19 +201,11 @@ jobs:
           Branch: 'feature/mobile-polish'
 
           ## What's new
-          - 12 new themes and customizable frosted glass.
-          - AniLumos Wrapped with artwork, personality cards and image sharing.
-          - Mood-based Discover, Smart Resume and personalized release calendar.
-          - Stream Health Assistant, collection presets and episode notes.
-          - Smart download queue and cinema lighting controls.
+          - Full-screen Franchise Watch Order guide with artwork and timeline.
+          - Franchise completion progress, completed labels and next unfinished anime.
+          - Filters for seasons, movies, OVAs and specials.
 
-          ## Improvements and fixes
-          - Refined Home, Browse, Discover, Downloads and tablet layouts.
-          - Fixed glass preference saving, backup and restore.
-          - Fixed build and packaging issues.
-
-          Wrapped uses local viewing data; measured playback time begins with this update.
-          Stream recovery offers manual source switching. Physical device testing is pending.
+          The existing release-order guide is retained. Physical device testing is pending.
 
           Mobile unit tests, lint, APK packaging and release certificate fingerprint verified in this workflow.
           QR scanning and account pairing need testing with the TV alpha on a real network.
@@ -224,9 +216,9 @@ jobs:
           See the source repository's LICENSE and notices.
           EOF
           # Checkout uses the source repository, so explicitly target the preview repository.
-          if ! gh release create "$TAG" dist/AniLumos-MOBILE-BETA-signed.apk \
+          if ! gh release create "$TAG" dist/AniLumos-MOBILE-BETA-signed.apk dist/SHA256SUMS \
             --repo vnxrgb/anilumos-preview \
-            --target "$GITHUB_SHA" --prerelease --title "MOBILE / TABLET BETA | ${SOURCE_SHA:0:12}" --notes-file notes.md; then
+            --target "$GITHUB_SHA" --prerelease --latest=false --title "MOBILE / TABLET BETA | ${SOURCE_SHA:0:12}" --notes-file notes.md; then
             echo "::error::Mobile APK passed signing verification but GitHub denied publishing to the preview repository."
             exit 1
           fi
