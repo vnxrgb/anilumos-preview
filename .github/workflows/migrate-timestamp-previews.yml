@@ -1,0 +1,43 @@
+name: Migrate timestamp and filler previews
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/migrate-timestamp-previews.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: migrate-timestamp-previews
+  cancel-in-progress: false
+jobs:
+  migrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Copy exact preview assets and verify destination
+        shell: bash
+        run: |
+          set -euo pipefail
+          source=vnxrgb/Anilumos
+          dest=vnxrgb/anilumos-preview
+          for id in 45570547614 45564383445 45560055601 45558213240 45557754321 45556848177 45555117372 45552720620 45550564984 45547107525; do
+            tag="timestamp-filler-preview-$id-1"
+            work="$(mktemp -d)"
+            gh api "repos/$source/releases/tags/$tag" > "$work/source.json"
+            jq -e '.prerelease == true and .draft == false' "$work/source.json" >/dev/null
+            mkdir "$work/original" "$work/copied"
+            gh release download "$tag" --repo "$source" --dir "$work/original"
+            (cd "$work/original" && sha256sum -c SHA256SUMS && test -s Anilumos.apk)
+            if ! gh release view "$tag" --repo "$dest" >/dev/null 2>&1; then
+              jq -r '.body // ""' "$work/source.json" > "$work/notes"
+              printf '\nOriginal source revision: %s\nExact migrated APK; not rebuilt.\n' "$(jq -r '.target_commitish' "$work/source.json")" >> "$work/notes"
+              gh release create "$tag" "$work/original/"* --repo "$dest" --target "$GITHUB_SHA" --title "$(jq -r '.name' "$work/source.json")" --notes-file "$work/notes" --prerelease --latest=false
+            fi
+            gh release download "$tag" --repo "$dest" --dir "$work/copied"
+            diff -qr "$work/original" "$work/copied"
+            (cd "$work/copied" && sha256sum -c SHA256SUMS)
+            echo "Verified exact copy: $tag" >> "$GITHUB_STEP_SUMMARY"
+            rm -rf "$work"
+          done
