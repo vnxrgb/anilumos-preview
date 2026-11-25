@@ -1,5 +1,5 @@
 name: Publish mobile signed preview
-# Mobile polish signed preview: curated franchise watch orders from both metadata sources.
+# Mobile polish signed preview: refined franchise guide UI and credits.
 
 on:
   push:
@@ -206,6 +206,7 @@ jobs:
           - Filters for seasons, movies, OVAs and specials.
           - Curated watch orders from Anime Watch Order API and Anime Metadata DB, where available.
           - Cached orders and release-order fallback.
+          - Refined order picker, compact progress, glass controls and clickable credits dialog.
 
           The existing release-order guide is retained. Physical device testing is pending.
 
