@@ -125,6 +125,19 @@ jobs:
           mkdir -p dist
           cp "$apk" dist/AniLumos-TV-ALPHA-signed.apk
           (cd dist && sha256sum AniLumos-TV-ALPHA-signed.apk > SHA256SUMS)
+          APK_BADGING="$badging" python3 - <<'PY'
+          import hashlib, json, os, pathlib, re
+          apk = pathlib.Path("dist/AniLumos-TV-ALPHA-signed.apk")
+          line = next(x for x in os.environ["APK_BADGING"].splitlines() if x.startswith("package:"))
+          version = re.search(r"versionName='([^']+)'", line)
+          build = re.search(r"versionCode='([0-9]+)'", line)
+          assert version and build
+          metadata = dict(formFactor="tv", packageName="com.anilumos.app",
+                          asset=apk.name, version=version.group(1),
+                          build=int(build.group(1)), sha256=hashlib.sha256(apk.read_bytes()).hexdigest())
+          pathlib.Path("dist/TV-UPDATE.json").write_text(json.dumps(metadata, sort_keys=True) + "\n")
+          PY
+
 
       - name: Publish permanent experimental TV release
         if: steps.preview_guard.outputs.skip != 'true'
@@ -164,7 +177,7 @@ jobs:
           EOF
           # Explicit repository target matters because checkout pulls source from a different repo.
           # Log a specific publishing-permission failure without exposing credentials.
-          if ! gh release create "$TAG" dist/AniLumos-TV-ALPHA-signed.apk \
+          if ! gh release create "$TAG" dist/AniLumos-TV-ALPHA-signed.apk dist/TV-UPDATE.json \
             --repo vnxrgb/anilumos-preview \
             --target "$GITHUB_SHA" --prerelease --title "TV / Fire TV ALPHA | ${SOURCE_SHA:0:12}" --notes-file notes.md; then
             echo "::error::TV build and release signature passed, but GitHub denied prerelease creation. Check preview repository Actions token permissions and release policy."
