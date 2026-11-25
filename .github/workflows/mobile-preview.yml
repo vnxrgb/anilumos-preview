@@ -1,5 +1,5 @@
 name: Publish mobile signed preview
-# Mobile polish signed preview: franchise watch-order timeline and progress.
+# Mobile polish signed preview: curated franchise watch orders from both metadata sources.
 
 on:
   push:
@@ -204,6 +204,8 @@ jobs:
           - Full-screen Franchise Watch Order guide with artwork and timeline.
           - Franchise completion progress, completed labels and next unfinished anime.
           - Filters for seasons, movies, OVAs and specials.
+          - Curated watch orders from Anime Watch Order API and Anime Metadata DB, where available.
+          - Cached orders and release-order fallback.
 
           The existing release-order guide is retained. Physical device testing is pending.
 
