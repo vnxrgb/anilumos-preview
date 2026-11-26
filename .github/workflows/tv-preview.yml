@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   tv:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[notes-only]')
     name: Test, package and publish Android TV / Fire TV alpha
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -174,8 +175,9 @@ jobs:
           Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
           Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
 
-          AniLife: https://github.com/anilifecommunity/android-and-tv
-          This app uses code from Morphe. To learn more, visit https://morphe.software
+          Based on AniLife.
+          This app uses code from Morphe.
+          See LICENSE and notices for applicable terms.
           See the source repository's LICENSE and notices.
           EOF
           # Explicit repository target matters because checkout pulls source from a different repo.

@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   mobile:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[notes-only]')
     name: Test, package and publish mobile/tablet beta
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -214,8 +215,9 @@ jobs:
           QR scanning and account pairing need testing with the TV alpha on a real network.
           Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
 
-          AniLife: https://github.com/anilifecommunity/android-and-tv
-          This app uses code from Morphe. To learn more, visit https://morphe.software
+          Based on AniLife.
+          This app uses code from Morphe.
+          See LICENSE and notices for applicable terms.
           See the source repository's LICENSE and notices.
           EOF
           # Checkout uses the source repository, so explicitly target the preview repository.

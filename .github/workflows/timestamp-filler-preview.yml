@@ -20,6 +20,7 @@ env:
 
 jobs:
   publish:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[notes-only]')
     name: Verify, sign and publish universal mobile APK
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -146,7 +147,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="timestamp-filler-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --target "$GITHUB_SHA" --title "AniLumos timestamp and filler preview" --notes "Experimental mobile build. Source: https://github.com/vnxrgb/Anilumos/commit/$(git rev-parse HEAD). Not a stable update." --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --target "$GITHUB_SHA" --title "AniLumos timestamp and filler preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Experimental mobile build. Not a stable update.' 'Based on AniLife.' 'This app uses code from Morphe.' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
