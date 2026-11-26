@@ -145,7 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="afterglow-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Afterglow — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "Introduced Afterglow — cinematic next-episode experience with personalized recommendations and Anime Journal integration." 'Based on AniLife.' 'This app uses code from Morphe.' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Afterglow — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "Introduced Afterglow — cinematic next-episode experience with personalized recommendations and Anime Journal integration." 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material

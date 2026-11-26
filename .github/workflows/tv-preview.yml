@@ -175,8 +175,8 @@ jobs:
           Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
           Release-signed package: 'com.anilumos.app'. Compatible upgrades require Android to accept this version code and matching signing certificate.
 
-          Based on AniLife.
-          This app uses code from Morphe.
+          Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).
+          This app uses code from [Morphe](https://morphe.software).
           See LICENSE and notices for applicable terms.
           See the source repository's LICENSE and notices.
           EOF

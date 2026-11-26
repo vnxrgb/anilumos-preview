@@ -61,7 +61,7 @@ jobs:
             if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
               gh release upload "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber && exit 0
             else
-              gh release create "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --target "$TARGET" --prerelease --latest=false --title "Optical Glass Mobile Preview | ${SOURCE_SHA:0:12}" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Recovered verified signed APK. Device testing pending.' 'Based on AniLife.' 'This app uses code from Morphe.' 'See LICENSE and notices for applicable terms.')" && exit 0
+              gh release create "$TAG" dist/AniLumos-OPTICAL-MOBILE-signed.apk dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --target "$TARGET" --prerelease --latest=false --title "Optical Glass Mobile Preview | ${SOURCE_SHA:0:12}" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Recovered verified signed APK. Device testing pending.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" && exit 0
             fi
             sleep "$((attempt * 10))"
           done

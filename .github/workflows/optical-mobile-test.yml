@@ -184,8 +184,8 @@ jobs:
 
           Source: https://github.com/vnxrgb/Anilumos/commit/$SOURCE_SHA
           Unit tests, lint and signing verification passed. Device testing pending.
-          Based on AniLife.
-          This app uses code from Morphe.
+          Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).
+          This app uses code from [Morphe](https://morphe.software).
           See LICENSE and notices for applicable terms.
           See source repository license and third-party notices.
           EOF
