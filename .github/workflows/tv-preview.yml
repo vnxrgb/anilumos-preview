@@ -164,13 +164,11 @@ jobs:
           Source: [vnxrgb/Anilumos@${SOURCE_SHA}](https://github.com/vnxrgb/Anilumos/commit/${SOURCE_SHA})
           Branch: 'feature/tv-polish'
 
-          Changes in this preview build:
-          - Added 12 theme presets, selectable glass materials and persistent appearance adjustments.
-          - Integrated local Wrapped activity dashboard, image sharing, mood discovery, download queue and shared library improvements; remote interaction still requires testing.
-          - Added Soft, Balanced and Vivid cinema-lighting presets to the TV player settings.
-          - Extended the fullscreen side-letterbox glow with softer, wider live-video colour blooms.
-          - Renamed the TV pairing screen to AniLumos Connect and clarified phone QR scanning and six-digit confirmation.
-          - Retained the existing QR address display and secure login handshake.
+          Changes since the previous signed TV preview:
+          - Hardened GitHub TV direct-update selection and download validation.
+          - Rejects incomplete release assets, invalid update metadata and untrusted redirects.
+          - Preserves existing TV-specific layouts, focus navigation and pairing implementation.
+          - Further mobile feature parity and real-device behavior remain unverified.
 
           Unit tests, TV lint, APK packaging and release certificate fingerprint verified in this workflow.
           Remote navigation, playback, QR pairing and low-end Fire TV performance still need physical testing.
