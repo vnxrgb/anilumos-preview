@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 36ad5188596dedef24e62ab1c3fb92a5e0b1182b
+          ref: c09f502b7a995161c6affc9ca751128f68836449
           persist-credentials: false
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -144,7 +144,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="anime-journal-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Anime Journal — signed mobile beta" --notes "$(printf '%s\n' '- Added Anime Journal with image sharing.' '- Added Franchise Watch Order.' '- Updated guided tour.' '- UI improvements and fixes.')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Anime Journal — signed mobile beta" --notes "$(printf '%s\n' '- Added Anime Journal with image sharing.' '- Added Franchise Watch Order.' '- Added personalization options.' '- Updated guided tour.' '- UI improvements and bug fixes.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
