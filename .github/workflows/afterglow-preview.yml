@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: dd6e6363dab5995091a9ee4f94d955577b5be32a
+          ref: 860adeb199a93db95bdca471d3a4c7d000192b85
           persist-credentials: false
 
       - name: Require AniList and MyAnimeList OAuth configuration
