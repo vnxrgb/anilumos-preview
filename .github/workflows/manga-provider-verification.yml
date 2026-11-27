@@ -1,0 +1,101 @@
+name: Manga provider verification
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/manga-provider-verification.yml']
+  schedule:
+    - cron: '47 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: manga-provider-verification
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      MANGA_HEALTH_SHARD: ${{ matrix.shard }}
+      MANGA_HEALTH_SHARDS: 8
+      MANGA_HEALTH_OUTPUT: ${{ github.workspace }}/health/shard-${{ matrix.shard }}.tsv
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vnxrgb/Anilumos
+          ref: a3b9d8375bfceac9612d5d3bfc12c7f44582ece7
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c
+        with:
+          cache-read-only: true
+      - name: Check public safe-rated samples with bounded requests
+        run: ./gradlew :app:testMobileDebugUnitTest --tests com.anilili.manga.MangaProviderVerificationTest --rerun-tasks --max-workers=2 --no-configuration-cache --console=plain
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: manga-health-${{ matrix.shard }}
+          path: health/shard-${{ matrix.shard }}.tsv
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: probe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: manga-health-*
+          path: results
+          merge-multiple: true
+      - name: Publish a complete data-only report
+        run: |
+          set -euo pipefail
+          mkdir -p manga-source-health
+          python3 - <<'PY'
+          import collections, csv, pathlib, re, time
+          files = sorted(pathlib.Path('results').glob('shard-*.tsv'))
+          assert len(files) == 8, 'Incomplete shards'
+          rows = {}
+          for file in files:
+              with file.open() as f:
+                  for row in csv.DictReader(f, delimiter='\t'):
+                      sid = row['id']
+                      assert re.fullmatch(r'mangadex|kotatsu:[a-z0-9_]+', sid)
+                      assert sid not in rows
+                      assert row['status'] in {'VERIFIED','CATALOG','FAILED','RESTRICTED','SERVER_TLS','UNTESTED'}
+                      rows[sid] = row
+          assert rows, 'No source observations'
+          verified = sorted(sid for sid,row in rows.items() if row['status'] == 'VERIFIED' and row['stage'] == 'image-header')
+          out = pathlib.Path('manga-source-health')
+          (out/'verified.txt').write_text('parser=8e4b04f3df0c49ac7bc3fea8202c9c7e81a4e626\nchecked='+str(int(time.time()*1000))+'\n'+'\n'.join(verified)+'\n')
+          with (out/'report.tsv').open('w') as f:
+              writer = csv.DictWriter(f, fieldnames=['id','status','stage'], delimiter='\t', lineterminator='\n')
+              writer.writeheader()
+              writer.writerows(rows[sid] for sid in sorted(rows))
+          counts=collections.Counter(row['status'] for row in rows.values())
+          print('Checked', len(rows), 'sources;', len(verified), 'image-header verified;', dict(counts))
+          import os
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write(f'## Source verification\nChecked: {len(rows)}\n\nImage-header verified: {len(verified)}\n\n')
+              for status,count in sorted(counts.items()): f.write(f'- {status}: {count}\n')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manga-source-health/verified.txt manga-source-health/report.tsv
+          git commit -m "Refresh verified manga sources [skip ci]" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
