@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: f3fcdc9b3877df033e2c1bae61041e58239c4003
+          ref: 2c69de23ef7be74ec1e24e81d87bfb8dd2b7cebf
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "f3fcdc9b3877df033e2c1bae61041e58239c4003"
+          test "$(git rev-parse HEAD)" = "2c69de23ef7be74ec1e24e81d87bfb8dd2b7cebf"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Remote HTML document rendering, local JavaScript runtime fix, bounded bitmap composition and copyable CDN compatibility diagnostics. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/f3fcdc9b3877df033e2c1bae61041e58239c4003')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Instant offline provider listing, on-demand catalogue and reader checks, seven-day success cache and simplified provider picker. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/2c69de23ef7be74ec1e24e81d87bfb8dd2b7cebf')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
