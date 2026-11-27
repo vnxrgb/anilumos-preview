@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 41cb324db06610724103076bd49d6b8ebe7c2398
+          ref: 00d0525ca4645b5637d662dcca7831301766072a
           persist-credentials: false
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -142,6 +142,24 @@ jobs:
             sleep $((attempt * 120))
           done
 
+      - name: Probe representative provider catalog, chapter and image stages
+        env:
+          MANGA_HEALTH_OUTPUT: ${{ github.workspace }}/dist/provider-health.tsv
+          MANGA_HEALTH_IDS: mangadex,kotatsu:atsumoe,kotatsu:chikari,kotatsu:elftoon,kotatsu:stonescape,kotatsu:naver_webtoon,kotatsu:webtoons_en,kotatsu:mangaplusparser_en,kotatsu:comick_fun,kotatsu:allmanga
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ./gradlew :app:testMobileDebugUnitTest --tests com.anilili.manga.MangaProviderVerificationTest --rerun-tasks --max-workers=2 --no-configuration-cache --console=plain
+          test -s dist/provider-health.tsv
+          cat dist/provider-health.tsv
+          {
+            echo '### Provider sample (CI network; no availability guarantee)'
+            echo '\x60\x60\x60'
+            cat dist/provider-health.tsv
+            echo '\x60\x60\x60'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Verify universal release APK and signer's identity
         shell: bash
         run: |
@@ -174,7 +192,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-reader-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Tap the AniLumos logo to switch between Anime and Manga.' '- Shared Anime UI components and redesigned manga provider picker.' '- Advanced reader settings, page layouts, filters, bookmarks and customizable controls.' '- Provider management, presets, reading collections and local CBZ/ZIP import.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt dist/provider-health.tsv --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Tap the AniLumos logo to switch between Anime and Manga.' '- Shared Anime UI components and redesigned manga provider picker.' '- Advanced reader settings, page layouts, filters, bookmarks and customizable controls.' '- Provider-specific parser options and connection diagnostics.' '- Catalog pagination and source compatibility improvements.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
