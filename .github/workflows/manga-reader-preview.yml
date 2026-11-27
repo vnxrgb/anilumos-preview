@@ -1,6 +1,9 @@
 name: Signed Manga Reader mobile preview
 
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/manga-reader-preview.yml']
   workflow_dispatch:
   workflow_run:
     workflows: ['Manga provider verification']
@@ -20,7 +23,7 @@ env:
 
 jobs:
   publish:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     name: Verify, sign and publish universal mobile APK
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -69,7 +72,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: f0d339b6cbb321cbc4a2441d7fafebf86d4fd222
+          ref: 88afe2672ab064c227f986eee68fda34645660b0
           persist-credentials: false
 
       - name: Require a recent nonempty verified-source manifest
@@ -182,7 +185,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-reader-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Redesigned manga Home, Browse, My List, Details and Reader.' '- Compact animated Anime/Manga switcher and shared AniLumos glass components.' '- Featured titles, discovery filters, English title preference and reading progress.' '- Tap-to-hide reader controls, page seeking and chapter navigation.' '- Adaptive tablet layouts and Light, Dark and AMOLED themes.' '- Telephoto-powered paged reader with pinch and double-tap zoom.' '- Verified manga sources, public HTTP image compatibility and preferred-language checks.' '- Unified MangaDex entry and legacy reading-progress compatibility.' '- Fixed server picker scrolling during background checks.' '- Offline chapter downloads are not included.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Manga Home and Details now follow the Anime design, with matching carousel and glass actions.' '- Verified-only provider selector in the top bar; daily source updates without APK rebuilds.' '- Genre shelves, compact Browse filters and reading-list grid/list layouts.' '- Reader fullscreen, comic and webtoon modes, background presets, magnifier and optional ambient light.' '- Manga Downloads hidden until offline chapter support is available.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
