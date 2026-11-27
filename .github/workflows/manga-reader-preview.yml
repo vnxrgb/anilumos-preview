@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 00d0525ca4645b5637d662dcca7831301766072a
+          ref: 271c543e260cbf850008c82e9e945bf5852dc384
           persist-credentials: false
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -192,7 +192,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-reader-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt dist/provider-health.tsv --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Tap the AniLumos logo to switch between Anime and Manga.' '- Shared Anime UI components and redesigned manga provider picker.' '- Advanced reader settings, page layouts, filters, bookmarks and customizable controls.' '- Provider-specific parser options and connection diagnostics.' '- Catalog pagination and source compatibility improvements.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt dist/provider-health.tsv --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Tap the AniLumos logo to switch between Anime and Manga.' '- Shared Anime UI components and redesigned manga provider picker.' '- Advanced reader settings, page layouts, filters, bookmarks and customizable controls.' '- Provider-specific parser options and connection diagnostics.' '- Catalog pagination and source compatibility improvements.' '- Persistent secure cookies and optional request slowdown.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
