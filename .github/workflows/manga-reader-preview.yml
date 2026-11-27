@@ -42,33 +42,20 @@ jobs:
       ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Require successful restored-player preview
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 120); do
-            result="$(gh api repos/vnxrgb/anilumos-preview/actions/runs/45880141454 --jq '[.status,.conclusion,.head_sha] | @tsv')"
-            status="$(cut -f1 <<< "$result")"
-            conclusion="$(cut -f2 <<< "$result")"
-            revision="$(cut -f3 <<< "$result")"
-            test "$revision" = "447c437f6c9015acd693b6170b7a77400ac7add4"
-            if [[ "$status" == "completed" ]]; then
-              if [[ "$conclusion" == "success" ]]; then exit 0; fi
-              echo "::error::Restored player preview did not succeed: $conclusion"
-              exit 1
-            fi
-            sleep 15
-          done
-          echo "::error::Restored player validation did not complete within the gate window."
-          exit 1
-
       # Build the exact corrected manga revision; release requires tests, lint and signing checks.
       - name: Check out experimental branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 8bdcaf98119349b0d9aa3bee44f3c46581e63ebc
+          ref: 2e05fdf7d446e9e48b1716545c0fd3d40672912d
           persist-credentials: false
+
+      - name: Verify pinned source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "2e05fdf7d446e9e48b1716545c0fd3d40672912d"
+          grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
         shell: bash
@@ -132,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            if ./gradlew :app:testMobileDebugUnitTest :app:lintMobileDebug :app:assembleMobileRelease --max-workers=2 --no-configuration-cache --console=plain --stacktrace > gradle-build.log 2>&1; then
+            if GITHUB_SHA="$(git rev-parse HEAD)" ./gradlew :manga-engine:testDebugUnitTest :app:testMobileDebugUnitTest :app:lintMobileDebug :app:assembleMobileRelease --max-workers=2 --no-configuration-cache --console=plain --stacktrace > gradle-build.log 2>&1; then
               cat gradle-build.log
               exit 0
             fi
@@ -141,24 +128,6 @@ jobs:
             if [ "$attempt" -eq 3 ]; then exit 1; fi
             sleep $((attempt * 120))
           done
-
-      - name: Probe representative provider catalog, chapter and image stages
-        env:
-          MANGA_HEALTH_OUTPUT: ${{ github.workspace }}/dist/provider-health.tsv
-          MANGA_HEALTH_IDS: mangadex,kotatsu:atsumoe,kotatsu:chikari,kotatsu:elftoon,kotatsu:stonescape,kotatsu:naver_webtoon,kotatsu:webtoons_en,kotatsu:mangaplusparser_en,kotatsu:comick_fun,kotatsu:allmanga
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          ./gradlew :app:testMobileDebugUnitTest --tests com.anilili.manga.MangaProviderVerificationTest --rerun-tasks --max-workers=2 --no-configuration-cache --console=plain
-          test -s dist/provider-health.tsv
-          cat dist/provider-health.tsv
-          {
-            echo '### Provider sample (CI network; no availability guarantee)'
-            echo '\x60\x60\x60'
-            cat dist/provider-health.tsv
-            echo '\x60\x60\x60'
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify universal release APK and signer's identity
         shell: bash
@@ -174,6 +143,9 @@ jobs:
           test "${fingerprint,,}" = "${ANDROID_SIGNING_CERT_SHA256,,}"
           package_line="$("$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk" | head -n 1)"
           [[ "$package_line" == *"name='com.anilumos.app'"* ]]
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$apk" > dist/apk-badging.tmp
+          grep -Fx "sdkVersion:'26'" dist/apk-badging.tmp
+          rm dist/apk-badging.tmp
           cp "$apk" dist/Anilumos.apk
           printf '%s\n' "$fingerprint" > dist/SIGNING-CERTIFICATE-SHA256.txt
           (cd dist && sha256sum Anilumos.apk SIGNING-CERTIFICATE-SHA256.txt > SHA256SUMS)
@@ -191,8 +163,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="manga-reader-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt dist/provider-health.tsv --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga Reader — signed mobile beta" --notes "$(printf '%s\n\n%s\n%s\n%s\n' "$(printf '%s\n' '- Tap the AniLumos logo to switch between Anime and Manga.' '- Shared Anime UI components and redesigned manga provider picker.' '- Advanced reader settings, page layouts, filters, bookmarks and customizable controls.' '- Provider-specific parser options and connection diagnostics.' '- Catalog pagination and source compatibility improvements.' '- Persistent secure cookies and optional request slowdown.' '- Correct handling of unrated official publisher catalogs.' '- Keep providers accessible after transient reader failures.')" 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv).' 'This app uses code from [Morphe](https://morphe.software).' 'See LICENSE and notices for applicable terms.')" --prerelease --latest=false
+          tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Tap the AniLumos logo to switch modes. Restored manga UI, local comic reader and reviewed Atsu sample (Chico chapter 3). Requires Android 8 or newer. Other online providers are not enabled.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/2e05fdf7d446e9e48b1716545c0fd3d40672912d')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
