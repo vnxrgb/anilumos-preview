@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 702f073c4d8c09546119d4008ce9708fe57ecfbf
+          ref: 7e135316c5277911c55c6d5c0eaec5318eb8c838
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "702f073c4d8c09546119d4008ce9708fe57ecfbf"
+          test "$(git rev-parse HEAD)" = "7e135316c5277911c55c6d5c0eaec5318eb8c838"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Curated-first manga discovery, seven-day title-provider match cache, remembered preferred source, strict languages and optional extended Kotatsu search. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/702f073c4d8c09546119d4008ce9708fe57ecfbf')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Five primary manga provider profiles, unrated labels for approved sources, title alias matching and search-more fix. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/7e135316c5277911c55c6d5c0eaec5318eb8c838')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
