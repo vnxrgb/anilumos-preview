@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 1432babcc33eab611b4c1ae1b8266345722434cb
+          ref: 4cc669d3ed63840bca15ece1b0f75ad2265ef659
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "1432babcc33eab611b4c1ae1b8266345722434cb"
+          test "$(git rev-parse HEAD)" = "4cc669d3ed63840bca15ece1b0f75ad2265ef659"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Kotatsu catalogue session integration, per-title artwork and chapter handles, real discovery metadata, genre filters and pagination. Atsu: Chico chapter 3 and Lookism metadata only. Further reader grants pending. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/1432babcc33eab611b4c1ae1b8266345722434cb')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Native Kotatsu provider catalogue browsing, search, filters and complete chapter lists. Atsu, MangaDex and ComicK configured; only technically verified providers appear. Improved saved-title restoration and bounded reader caching. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/4cc669d3ed63840bca15ece1b0f75ad2265ef659')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
