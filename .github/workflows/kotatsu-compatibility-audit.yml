@@ -1,0 +1,66 @@
+name: Kotatsu upstream compatibility audit
+on:
+  schedule:
+    - cron: '41 8 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kotatsu-upstream-compatibility
+  cancel-in-progress: false
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout experimental manga branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vnxrgb/Anilumos
+          ref: feature/manga-v2
+          persist-credentials: false
+      - name: Compare pinned upstream revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p compatibility-report
+          pinned="$(sed -nE 's/.*com\.github\.Kotatsu-Redo:kotatsu-parsers-redo:([a-f0-9]{40}).*/\1/p' manga-engine/build.gradle.kts | head -n 1)"
+          [[ "$pinned" =~ ^[0-9a-f]{40}$ ]]
+          upstream="Kotatsu-Redo/kotatsu-parsers-redo"
+          default_branch="$(gh api "repos/$upstream" --jq '.default_branch')"
+          latest="$(gh api "repos/$upstream/commits/$default_branch" --jq '.sha')"
+          [[ "$latest" =~ ^[0-9a-f]{40}$ ]]
+          {
+            echo "Pinned parser revision: $pinned"
+            echo "Upstream default-branch revision: $latest"
+            if [[ "$pinned" == "$latest" ]]; then
+              echo "No upstream revision change."
+            else
+              echo "Upstream changes detected; inspect before updating the dependency."
+              echo "https://github.com/$upstream/compare/$pinned...$latest"
+            fi
+            echo "This job does not modify the branch or activate providers."
+          } | tee compatibility-report/upstream.txt >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c
+        with:
+          cache-read-only: true
+      - name: Offline parser inventory and compatibility regression
+        run: ./gradlew :manga-engine:testDebugUnitTest :app:testMobileDebugUnitTest --max-workers=2 --no-configuration-cache --console=plain --stacktrace
+      - name: Upload compatibility audit
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: kotatsu-compatibility-report
+          path: |
+            compatibility-report/
+            manga-engine/build/reports/provider-compatibility/
+            manga-engine/build/reports/tests/
+            app/build/reports/tests/testMobileDebugUnitTest/
+          if-no-files-found: warn
