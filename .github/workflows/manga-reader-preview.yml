@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 2e05fdf7d446e9e48b1716545c0fd3d40672912d
+          ref: 3e1bbd5cdaed040968e91be8e9c53efc898409f9
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "2e05fdf7d446e9e48b1716545c0fd3d40672912d"
+          test "$(git rev-parse HEAD)" = "3e1bbd5cdaed040968e91be8e9c53efc898409f9"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -129,6 +129,17 @@ jobs:
             sleep $((attempt * 120))
           done
 
+      - name: Preserve regression test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: manga-v2-regression-reports
+          path: |
+            app/build/reports/tests/testMobileDebugUnitTest/
+            app/build/reports/lint-results-mobileDebug.*
+            manga-engine/build/reports/tests/
+          if-no-files-found: ignore
+
       - name: Verify universal release APK and signer's identity
         shell: bash
         run: |
@@ -164,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Tap the AniLumos logo to switch modes. Restored manga UI, local comic reader and reviewed Atsu sample (Chico chapter 3). Requires Android 8 or newer. Other online providers are not enabled.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/2e05fdf7d446e9e48b1716545c0fd3d40672912d')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Tap the AniLumos logo to switch modes. Restored manga UI, local comic reader and reviewed Atsu sample (Chico chapter 3). Requires Android 8 or newer. Other online providers are not enabled.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/3e1bbd5cdaed040968e91be8e9c53efc898409f9')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
