@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 5087a065dc260311c43e72a0b7370cd26df1e9df
+          ref: 26fa98e87e15c6d9bbb8520feb23056710ae8b5d
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "5087a065dc260311c43e72a0b7370cd26df1e9df"
+          test "$(git rev-parse HEAD)" = "26fa98e87e15c6d9bbb8520feb23056710ae8b5d"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -176,11 +176,11 @@ jobs:
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           cat > release-notes.md <<'RELEASE_NOTES'
-          Allow unclassified manga titles across all providers, configure Chikari's reported image host and improve image diagnostics. Android 8 or newer.
+          Improved provider image compatibility, sharper chapter images and higher-resolution covers. Android 8 or newer.
 
           Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.
           This app uses code from [Morphe](https://morphe.software).
-          Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/5087a065dc260311c43e72a0b7370cd26df1e9df
+          Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/26fa98e87e15c6d9bbb8520feb23056710ae8b5d
           RELEASE_NOTES
           gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes-file release-notes.md --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
