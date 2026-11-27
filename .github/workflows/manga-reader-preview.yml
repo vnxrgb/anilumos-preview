@@ -47,14 +47,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: vnxrgb/Anilumos
-          ref: 63b0a3b36ddc2e7a3e04021e1e2eabc2001c86fb
+          ref: 993c4eb32cf14032600b6979241dfed7b0fdf534
           persist-credentials: false
 
       - name: Verify pinned source revision
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "63b0a3b36ddc2e7a3e04021e1e2eabc2001c86fb"
+          test "$(git rev-parse HEAD)" = "993c4eb32cf14032600b6979241dfed7b0fdf534"
           grep -Fq 'minSdk = 26' app/build.gradle.kts
 
       - name: Require AniList and MyAnimeList OAuth configuration
@@ -175,7 +175,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="manga-v2-preview-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Real manga discovery metadata with country and genre filters, pagination and official publisher links. Independent reading-source checks and a multi-episode Pepper & Carrot open webcomic reader (David Revoy and contributors, CC BY 4.0: https://www.peppercarrot.com). Atsu remains limited to the reviewed Chico chapter 3. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/63b0a3b36ddc2e7a3e04021e1e2eabc2001c86fb')" --prerelease --latest=false
+          gh release create "$tag" dist/Anilumos.apk dist/SHA256SUMS dist/SIGNING-CERTIFICATE-SHA256.txt dist/BUILD-REVISION.txt --repo vnxrgb/anilumos-preview --target "$GITHUB_SHA" --title "AniLumos Manga v2 — signed mobile preview" --notes "$(printf '%s\n\n%s\n%s\n%s\n' 'Kotatsu catalogue session integration, per-title artwork and chapter handles, real discovery metadata, genre filters and pagination. Atsu: Chico chapter 3 and Lookism metadata only. Further reader grants pending. Android 8 or newer.' 'Based on [AniLife](https://github.com/anilifecommunity/android-and-tv). Parser code from [Kotatsu-Redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/tree/3432a85ac02ce99824cf841aca40bfd3af78ed3f), GPLv3; see source and notices.' 'This app uses code from [Morphe](https://morphe.software).' 'Experimental preview; physical-device validation pending. Source: https://github.com/vnxrgb/Anilumos/tree/993c4eb32cf14032600b6979241dfed7b0fdf534')" --prerelease --latest=false
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/Anilumos.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove restored signing material
